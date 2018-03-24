@@ -9,9 +9,11 @@ import NIOHTTP1
 
 class HTTPHandlers: ChannelInboundHandler {
     
+    //??
     public typealias InboundIn = HTTPServerRequestPart
     public typealias OutboundOut = HTTPServerResponsePart
     
+    //??
     private enum State {
         case idle
         case waitingForRequestBody
@@ -45,7 +47,7 @@ class HTTPHandlers: ChannelInboundHandler {
     private var handler: ((ChannelHandlerContext, HTTPServerRequestPart) -> Void)?
     private var handlerFuture: EventLoopFuture<Void>?
     
-    // basic functions of the andler
+    // MARK: basic functions of the handler
     private func completeResponse(_ ctx: ChannelHandlerContext, trailers: HTTPHeaders?, promise: EventLoopPromise<Void>?) {
         self.state.responseComplete()
         
@@ -56,7 +58,7 @@ class HTTPHandlers: ChannelInboundHandler {
         
         ctx.writeAndFlush(self.wrapOutboundOut(.end(trailers)), promise: promise)
     }
-    
+    // ?? 
     func channelRead(ctx: ChannelHandlerContext, data: NIOAny) {
         let reqPart = self.unwrapInboundIn(data)
         if let handler = self.handler {
@@ -103,7 +105,7 @@ class HTTPHandlers: ChannelInboundHandler {
     
     func handlerAdded(ctx: ChannelHandlerContext) {
         self.buffer = ctx.channel.allocator.buffer(capacity: 12)
-        self.buffer.write(staticString: "Hello World!")
+        self.buffer.write(staticString: "Hello World!") // serve as default "/"
     }
     
     func userInboundEventTriggered(ctx: ChannelHandlerContext, event: Any) {
@@ -124,6 +126,8 @@ class HTTPHandlers: ChannelInboundHandler {
         }
     }
 }
+
+// Helper Extentions
 extension String {
     func chopPrefix(_ prefix: String) -> String? {
         if self.unicodeScalars.starts(with: prefix.unicodeScalars) {

@@ -1,26 +1,21 @@
 import NIO
 import NIOHTTP1
 
-
+// this is the Server Part with Socket setup etc.
 print("start the swift nio project")
 
 let defaultHost = "127.0.0.1"
 let defaultPort = 8080
+// here come the http magic in the game
 let myHelloHandler = HTTPHandlers()
 
-//enum BindTo{
-//    case ip(host: String, port: Int)
-//}
-//
-//let bindTarget: BindTo
-//
-//bindTarget = BindTo.ip(host: defaultHost, port: defaultPort)
 
 // Event Loop Setup
 let group = MultiThreadedEventLoopGroup(numThreads: System.coreCount)
 let threadPool  = BlockingIOThreadPool(numberOfThreads: 3)
 threadPool.start()
 
+// bootstrap the http Server
 let bootstrap = ServerBootstrap(group: group)
     // Specify backlog and enable SO_REUSEADDR for the server itself
     .serverChannelOption(ChannelOptions.backlog, value: 256)
@@ -38,16 +33,17 @@ let bootstrap = ServerBootstrap(group: group)
     .childChannelOption(ChannelOptions.maxMessagesPerRead, value:1)
     .childChannelOption(ChannelOptions.allowRemoteHalfClosure, value: true)
 
-///////////
 defer {
     try! group.syncShutdownGracefully()
     try! threadPool.syncShutdownGracefully()
 }
 
+//???
 let channel = try { () -> Channel in
     return try bootstrap.bind(host: defaultHost, port: defaultPort).wait()
 }()
 
+// Shutdown process
 print("Server started and listen on \(channel.localAddress!)")
 try channel.closeFuture.wait()
 

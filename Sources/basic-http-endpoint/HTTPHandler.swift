@@ -72,11 +72,11 @@ class HTTPHandlers: ChannelInboundHandler {
 //                self.handler = self.dynamicHandler(request: request)
                 self.handler!(ctx, reqPart)
                 return
-            } else if let path = request.uri.chopPrefix("/sendfile/") {
+            } else if request.uri.chopPrefix("/sendfile/") != nil {
 //                self.handler = { self.handleFile(ctx: $0, request: $1, ioMethod: .sendfile, path: path) }
                 self.handler!(ctx, reqPart)
                 return
-            } else if let path = request.uri.chopPrefix("/fileio/") {
+            } else if request.uri.chopPrefix("/fileio/") != nil {
 //                self.handler = { self.handleFile(ctx: $0, request: $1, ioMethod: .nonblockingFileIO, path: path) }
                 self.handler!(ctx, reqPart)
                 return

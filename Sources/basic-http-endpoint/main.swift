@@ -11,7 +11,7 @@ let myHelloHandler = HTTPHandlers()
 
 
 // Event Loop Setup
-let group = MultiThreadedEventLoopGroup(numThreads: System.coreCount)
+let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 let threadPool  = BlockingIOThreadPool(numberOfThreads: 3)
 threadPool.start()
 

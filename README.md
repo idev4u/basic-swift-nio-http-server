@@ -2,7 +2,7 @@
 
 Goal is to strip down the orginal example from swift nio http server to better understand how the HTTP Parser part works.
 
-how to test?
+## how to test?
 ```bash
 curl 127.0.0.1:8080/ -vv
 ```
@@ -24,3 +24,21 @@ expected response
 * Connection #0 to host 127.0.0.1 left intact
 Hello World!
 ```
+
+## Benchmark
+
+Currently this experimental project supports only one connection for benchamrking. Maybe more in the future 🚀.
+```
+bash$ wrk -t1 -c1 -d 10s http://127.0.0.1:8080/
+```
+result
+```
+Running 10s test @ http://127.0.0.1:8080/
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   233.23us   34.04us   1.39ms   89.94%
+    Req/Sec     4.22k   255.95     4.51k    94.06%
+  42454 requests in 10.10s, 2.06MB read
+Requests/sec:   4203.21
+Transfer/sec:    209.34KB
+``

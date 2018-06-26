@@ -27,7 +27,7 @@ Hello World!
 
 ## Benchmark
 
-Currently this experimental project supports only one connection for benchamrking. Maybe more in the future 🚀.
+Currently this experimental project supports only one connection for benchmarking. Maybe more in the future 🚀.(tbd)
 ```
 bash$ wrk -t1 -c1 -d 10s http://127.0.0.1:8080/
 ```

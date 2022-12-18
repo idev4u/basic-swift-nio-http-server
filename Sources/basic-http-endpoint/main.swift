@@ -22,9 +22,9 @@ let bootstrap = ServerBootstrap(group: group)
     .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
     // Set the handlers that are applied to the accepted Channels
     .childChannelInitializer { channel in
-				return channel.pipeline.configureHTTPServerPipeline(withErrorHandling: false).flatMap {
+        channel.pipeline.configureHTTPServerPipeline(withErrorHandling: false).flatMap {
             channel.pipeline.addHandler(myHelloHandler)
-				}
+        }
     }
     // Enable TCP_NODELAY and SO_REUSEADDR for the accepted Channels
     .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value:1)

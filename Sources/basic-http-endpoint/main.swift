@@ -12,8 +12,8 @@ let myHelloHandler = HTTPHandlers()
 
 // Event Loop Setup
 let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-let threadPool  = BlockingIOThreadPool(numberOfThreads: 3)
-threadPool.start()
+//let threadPool  = BlockingIOThreadPool(numberOfThreads: 3)
+//threadPool.start()
 
 // bootstrap the http Server
 let bootstrap = ServerBootstrap(group: group)
@@ -22,20 +22,20 @@ let bootstrap = ServerBootstrap(group: group)
     .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
     // Set the handlers that are applied to the accepted Channels
     .childChannelInitializer { channel in
-        channel.pipeline.configureHTTPServerPipeline().then {
-            channel.pipeline.add(handler: myHelloHandler)
-        }
+				return channel.pipeline.configureHTTPServerPipeline(withErrorHandling: false).flatMap {
+            channel.pipeline.addHandler(myHelloHandler)
+				}
     }
     // Enable TCP_NODELAY and SO_REUSEADDR for the accepted Channels
     .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value:1)
     // ???
-    .childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
+    .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
     .childChannelOption(ChannelOptions.maxMessagesPerRead, value:1)
     .childChannelOption(ChannelOptions.allowRemoteHalfClosure, value: true)
 
 defer {
     try! group.syncShutdownGracefully()
-    try! threadPool.syncShutdownGracefully()
+    //try! threadPool.syncShutdownGracefully()
 }
 
 //???

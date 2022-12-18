@@ -48,21 +48,21 @@ class HTTPHandlers: ChannelInboundHandler {
     private var handlerFuture: EventLoopFuture<Void>?
     
     // MARK: basic functions of the handler
-    private func completeResponse(_ ctx: ChannelHandlerContext, trailers: HTTPHeaders?, promise: EventLoopPromise<Void>?) {
+    private func completeResponse(_ context: ChannelHandlerContext, trailers: HTTPHeaders?, promise: EventLoopPromise<Void>?) {
         self.state.responseComplete()
         
-        let promise = self.keepAlive ? promise : (promise ?? ctx.eventLoop.newPromise())
+        let promise = self.keepAlive ? promise : (promise ?? context.eventLoop.makePromise())
         if !self.keepAlive {
-            promise!.futureResult.whenComplete { ctx.close(promise: nil) }
+            promise!.futureResult.whenComplete { _ in context.close(promise: nil) }
         }
         
-        ctx.writeAndFlush(self.wrapOutboundOut(.end(trailers)), promise: promise)
+        context.writeAndFlush(self.wrapOutboundOut(.end(trailers)), promise: promise)
     }
     // ?? 
-    func channelRead(ctx: ChannelHandlerContext, data: NIOAny) {
+    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let reqPart = self.unwrapInboundIn(data)
         if let handler = self.handler {
-            handler(ctx, reqPart)
+            handler(context, reqPart)
             return
         }
         
@@ -70,15 +70,15 @@ class HTTPHandlers: ChannelInboundHandler {
         case .head(let request):
             if request.uri.unicodeScalars.starts(with: "/dynamic".unicodeScalars) {
 //                self.handler = self.dynamicHandler(request: request)
-                self.handler!(ctx, reqPart)
+                self.handler!(context, reqPart)
                 return
             } else if request.uri.chopPrefix("/sendfile/") != nil {
-//                self.handler = { self.handleFile(ctx: $0, request: $1, ioMethod: .sendfile, path: path) }
-                self.handler!(ctx, reqPart)
+//                self.handler = { self.handleFile(context: $0, request: $1, ioMethod: .sendfile, path: path) }
+                self.handler!(context, reqPart)
                 return
             } else if request.uri.chopPrefix("/fileio/") != nil {
-//                self.handler = { self.handleFile(ctx: $0, request: $1, ioMethod: .nonblockingFileIO, path: path) }
-                self.handler!(ctx, reqPart)
+//                self.handler = { self.handleFile(context: $0, request: $1, ioMethod: .nonblockingFileIO, path: path) }
+                self.handler!(context, reqPart)
                 return
             }
             
@@ -88,27 +88,27 @@ class HTTPHandlers: ChannelInboundHandler {
             var responseHead = HTTPResponseHead(version: request.version, status: HTTPResponseStatus.ok)
             responseHead.headers.add(name: "content-length", value: "12")
             let response = HTTPServerResponsePart.head(responseHead)
-            ctx.write(self.wrapOutboundOut(response), promise: nil)
+            context.write(self.wrapOutboundOut(response), promise: nil)
         case .body:
             break
         case .end:
             self.state.requestComplete()
             let content = HTTPServerResponsePart.body(.byteBuffer(buffer!.slice()))
-            ctx.write(self.wrapOutboundOut(content), promise: nil)
-            self.completeResponse(ctx, trailers: nil, promise: nil)
+            context.write(self.wrapOutboundOut(content), promise: nil)
+            self.completeResponse(context, trailers: nil, promise: nil)
         }
     }
     
-    func channelReadComplete(ctx: ChannelHandlerContext) {
-        ctx.flush()
+    func channelReadComplete(context: ChannelHandlerContext) {
+        context.flush()
     }
     
-    func handlerAdded(ctx: ChannelHandlerContext) {
-        self.buffer = ctx.channel.allocator.buffer(capacity: 12)
-        self.buffer.write(staticString: "Hello World!") // serve as default "/"
+    func handlerAdded(context: ChannelHandlerContext) {
+        self.buffer = context.channel.allocator.buffer(capacity: 12)
+        self.buffer.writeString("Hello World!") // serve as default "/"
     }
     
-    func userInboundEventTriggered(ctx: ChannelHandlerContext, event: Any) {
+    func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
         switch event {
         case let evt as ChannelEvent where evt == ChannelEvent.inputClosed:
             // The remote peer half-closed the channel. At this time, any
@@ -117,12 +117,12 @@ class HTTPHandlers: ChannelInboundHandler {
             // will close the channel immediately.
             switch self.state {
             case .idle, .waitingForRequestBody:
-                ctx.close(promise: nil)
+                context.close(promise: nil)
             case .sendingResponse:
                 self.keepAlive = false
             }
         default:
-            ctx.fireUserInboundEventTriggered(event)
+            context.fireUserInboundEventTriggered(event)
         }
     }
 }
